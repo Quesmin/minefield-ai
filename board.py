@@ -1,17 +1,7 @@
-"""
- Example program to show using an array to back a grid on-screen.
- 
- Sample Python/Pygame Programs
- Simpson College Computer Science
- http://programarcadegames.com/
- http://simpson.edu/computer-science/
- 
- Explanation video: http://youtu.be/mdTeqiWyFnc
-"""
 import pygame
 from enum import Enum
 
-# Define some colors
+################## CONSTANTS ##################
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 GREEN = (0, 255, 0)
@@ -19,7 +9,6 @@ RED = (255, 0, 0)
 HIDDEN_GRAY = (131, 131, 131)
 
 FONT_SIZE = 32
-
 BOARD_SIZE = 10
 CELL_SIZE = 80
 MARGIN = 10
@@ -27,20 +16,14 @@ TEXT_OFFSET = MARGIN + CELL_SIZE
 
 WINDOW_SIZE = [BOARD_SIZE * (MARGIN + CELL_SIZE) + MARGIN, (BOARD_SIZE + 1) * (MARGIN + CELL_SIZE) + MARGIN]
 
+################## ASSETS ##################
 msg_icon = pygame.image.load("Email-Icon.jpg")
 msg_icon = pygame.transform.scale(msg_icon, (CELL_SIZE, CELL_SIZE))
-
 bomb_icon = pygame.image.load("Octavian-Cret.jpg")
 bomb_icon = pygame.transform.scale(bomb_icon, (CELL_SIZE, CELL_SIZE))
 
 
-# BASE_GRID:      0 -> WHITE CELL
-#                 1 -> HIDDEN CELL
-#                 2 -> PLAYER POSITION
-#
-# SPRITE_GRID:    0 -> NO_SPRITE
-#                 1 -> MSG_SPRITE
-#                 2 -> BOMB_SPRITE
+################## TYPES ##################
 class State(Enum):
     RUNNING = 0
     OVER = 1
@@ -64,6 +47,16 @@ class Player:
         self.y = y
 
 
+################## GLOBAL VARIABLES ##################
+base_grid = []
+sprite_grid = []
+display_msg = ''
+
+msg_dict = {(0, 0): "lol caca", (1, 1): "mue boc"}
+bomb_arr = [(1, 5), (2, 7)]
+
+
+################## UTILS ##################
 def move(player, grid, direction):
     if direction == 'UP':
         grid[player.x][player.y] = BaseGrid.WHITE_CELL
@@ -90,63 +83,47 @@ def move(player, grid, direction):
 def isGameOver(player, sprite_grid):
     return sprite_grid[player.x][player.y] == SpriteGrid.BOMB_SPRITE
 
+
+def isMessage(player, sprite_grid):
+    return sprite_grid[player.x][player.y] == SpriteGrid.MSG_SPRITE
+
+
 def getCellRow(row):
     return (MARGIN + CELL_SIZE) * row + MARGIN + TEXT_OFFSET
+
 
 def getCellColumn(column):
     return (MARGIN + CELL_SIZE) * column + MARGIN
 
 
-# Create a 2 dimensional array. A two dimensional
-# array is simply a list of lists.
-base_grid = []
-sprite_grid = []
+# Init game grids
 for row in range(BOARD_SIZE):
-    # Add an empty array that will hold each cell
-    # in this row
     base_grid.append([])
     sprite_grid.append([])
     for column in range(BOARD_SIZE):
         base_grid[row].append(BaseGrid.HIDDEN_CELL)  # Append a cell
         sprite_grid[row].append(SpriteGrid.NO_SPRITE)  # Append a cell
+        if (row, column) in msg_dict:
+            sprite_grid[row][column] = SpriteGrid.MSG_SPRITE
+        if (row, column) in bomb_arr:
+            sprite_grid[row][column] = SpriteGrid.BOMB_SPRITE
 
-# BASE_GRID:      0 -> WHITE CELL
-#                 1 -> HIDDEN CELL
-#                 2 -> PLAYER POSITION
-#
-# SPRITE_GRID:    0 -> NO SPRITE
-#                 1 -> MSG SPRITE
-#                 2 -> BOMB SPRITE
-
-# Set row 1, cell 5 to one. (Remember rows and
-# column numbers start at zero.)
+# Init player
 base_grid[0][0] = BaseGrid.PLAYER_CELL
 player = Player(0, 0)
 
-sprite_grid[4][6] = SpriteGrid.BOMB_SPRITE
-sprite_grid[1][2] = SpriteGrid.MSG_SPRITE
-
-# Initialize pygame
 pygame.init()
-
-# Set the HEIGHT and WIDTH of the screen
-
 screen = pygame.display.set_mode(WINDOW_SIZE)
+pygame.display.set_caption("Minefield")
 
-# Set title of screen
-pygame.display.set_caption("Array Backed Grid")
-
-# Loop until the user clicks the close button.
 state = State.RUNNING
 
-# Used to manage how fast the screen updates
-clock = pygame.time.Clock()
-
-# -------- Main Program Loop -----------
 while state == State.RUNNING:
-    for event in pygame.event.get():  # User did something
-        if event.type == pygame.QUIT:  # If user clicked close
-            state = State.OVER  # Flag that we are done so we exit this loop
+
+    # Update
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            state = State.OVER
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_UP:
                 move(player, base_grid, 'UP')
@@ -157,14 +134,18 @@ while state == State.RUNNING:
             if event.key == pygame.K_RIGHT:
                 move(player, base_grid, 'RIGHT')
 
+    display_msg = ''
+
     if isGameOver(player, sprite_grid):
         state = State.OVER
+        display_msg = 'GAME OVER'
+
+    if isMessage(player, sprite_grid):
+        display_msg = msg_dict[(player.x, player.y)]
 
 
-
-    # Set the screen background
+    # Display
     screen.fill(BLACK)
-
     pygame.draw.rect(screen,
                      WHITE,
                      [MARGIN,
@@ -172,63 +153,58 @@ while state == State.RUNNING:
                       (CELL_SIZE + MARGIN) * BOARD_SIZE - MARGIN,
                       CELL_SIZE])
 
-    text = str('caca')
+    text = str(display_msg)
     font = pygame.font.SysFont('Comic Sans MS', FONT_SIZE)
     text_obj = font.render(text, False, BLACK)
     screen.blit(text_obj, text_obj.get_rect(center=(screen.get_rect().width // 2, (2 * MARGIN + CELL_SIZE) // 2)))
 
-    # Draw the base_grid
+    # Init display white cells grid
     for row in range(BOARD_SIZE):
         for column in range(BOARD_SIZE):
             if base_grid[row][column] == BaseGrid.WHITE_CELL:
                 pygame.draw.rect(screen,
                                  WHITE,
-                                 [(MARGIN + CELL_SIZE) * column + MARGIN,
-                                  (MARGIN + CELL_SIZE) * row + MARGIN + TEXT_OFFSET,
+                                 [getCellColumn(column),
+                                  getCellRow(row),
                                   CELL_SIZE,
                                   CELL_SIZE])
 
+    # Display the sprites
     for row in range(BOARD_SIZE):
         for column in range(BOARD_SIZE):
             if sprite_grid[row][column] == SpriteGrid.MSG_SPRITE:
                 screen.blit(msg_icon.convert_alpha(),
-                            ((MARGIN + CELL_SIZE) * column + MARGIN, (MARGIN + CELL_SIZE) * row + MARGIN + TEXT_OFFSET))
+                            (getCellColumn(column), getCellRow(row)))
             elif sprite_grid[row][column] == SpriteGrid.BOMB_SPRITE:
                 screen.blit(bomb_icon.convert_alpha(),
-                            ((MARGIN + CELL_SIZE) * column + MARGIN, (MARGIN + CELL_SIZE) * row + MARGIN + TEXT_OFFSET))
+                            (getCellColumn(column), getCellRow(row)))
 
+    # Update player and hidden cells
     for row in range(BOARD_SIZE):
         for column in range(BOARD_SIZE):
             if base_grid[row][column] == BaseGrid.HIDDEN_CELL:
                 pygame.draw.rect(screen,
                                  HIDDEN_GRAY,
-                                 [(MARGIN + CELL_SIZE) * column + MARGIN,
-                                  (MARGIN + CELL_SIZE) * row + MARGIN + TEXT_OFFSET,
+                                 [getCellColumn(column),
+                                  getCellRow(row),
                                   CELL_SIZE,
                                   CELL_SIZE])
             elif base_grid[row][column] == BaseGrid.PLAYER_CELL:
                 if sprite_grid[row][column] != SpriteGrid.NO_SPRITE:
-                    s = pygame.Surface((CELL_SIZE, CELL_SIZE))  # the size of your rect
-                    s.set_alpha(128)  # alpha level
+                    s = pygame.Surface((CELL_SIZE, CELL_SIZE))
+                    s.set_alpha(128)
                     s.fill(GREEN if sprite_grid[row][
-                                        column] == SpriteGrid.MSG_SPRITE else RED)  # this fills the entire surface
-                    screen.blit(s, ((MARGIN + CELL_SIZE) * column + MARGIN,
-                                    (MARGIN + CELL_SIZE) * row + MARGIN + TEXT_OFFSET))  # (0,0) are the top-left coordinates
+                                        column] == SpriteGrid.MSG_SPRITE else RED)
+                    screen.blit(s, (getCellColumn(column), getCellRow(row)))
                 else:
                     pygame.draw.rect(screen,
                                      GREEN,
-                                     [(MARGIN + CELL_SIZE) * column + MARGIN,
-                                      (MARGIN + CELL_SIZE) * row + MARGIN + TEXT_OFFSET,
+                                     [getCellColumn(column),
+                                      getCellRow(row),
                                       CELL_SIZE,
                                       CELL_SIZE])
 
-    # Limit to 60 frames per second
-    clock.tick(60)
-
-    # Go ahead and update the screen with what we've drawn.
     pygame.display.flip()
 
-# Be IDLE friendly. If you forget this line, the program will 'hang'
-# on exit.
 pygame.time.wait(10000)
 pygame.quit()
