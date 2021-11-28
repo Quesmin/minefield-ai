@@ -9,7 +9,7 @@ RED = (255, 0, 0)
 HIDDEN_GRAY = (131, 131, 131)
 
 FONT_SIZE = 32
-BOARD_SIZE = 10
+BOARD_SIZE = 4
 CELL_SIZE = 80
 MARGIN = 10
 TEXT_OFFSET = MARGIN + CELL_SIZE
@@ -53,7 +53,7 @@ sprite_grid = []
 display_msg = ''
 
 msg_dict = {(0, 0): "lol caca", (1, 1): "mue boc"}
-bomb_arr = [(1, 5), (2, 7)]
+bomb_arr = [(1, 0), (2, 0)]
 
 
 ################## UTILS ##################
@@ -82,6 +82,21 @@ def move(player, grid, direction):
 
 def isGameOver(player, sprite_grid):
     return sprite_grid[player.x][player.y] == SpriteGrid.BOMB_SPRITE
+
+def isGameWon(base_grid, sprite_grid):
+
+    for row in range(BOARD_SIZE):
+        for column in range(BOARD_SIZE):
+            if base_grid[row][column] == BaseGrid.HIDDEN_CELL and sprite_grid[row][column] != SpriteGrid.BOMB_SPRITE:
+                return False
+
+    return True
+
+def revealBombs(base_grid, sprite_grid):
+    for row in range(BOARD_SIZE):
+        for column in range(BOARD_SIZE):
+            if sprite_grid[row][column] == SpriteGrid.BOMB_SPRITE:
+                base_grid[row][column] = BaseGrid.WHITE_CELL
 
 
 def isMessage(player, sprite_grid):
@@ -142,6 +157,11 @@ while state == State.RUNNING:
 
     if isMessage(player, sprite_grid):
         display_msg = msg_dict[(player.x, player.y)]
+
+    if isGameWon(base_grid, sprite_grid):
+        state = State.OVER
+        revealBombs(base_grid, sprite_grid)
+        display_msg = 'GAME WON'
 
 
     # Display
