@@ -1,0 +1,24 @@
+#GAME
+
+The strategy used in this game is the same as in the one presented at the lab classes, minefield.
+In this game the user should avoid hidden bombs around the map. In order to win every spot on the map that
+doesnt have a bomb should be revealed. The player is guided to the solution by strategically placed logic messages
+that hold hints for the next moves. When the game finishes the user will be prompted with the result of the game as 
+text message in the display area.
+
+
+#LAYOUT
+
+The map consists in a <size>x<size> square grid with a minimal display where the text of the messages
+will be displayed. An empty cell is displayed as a white grid cell, a hidden one is colored in gray, the 
+current position of the player is displayed using the green color and the bombs and the messages are represented
+using specific sprites.
+
+
+#MECHANICS
+
+The gameplay consists in moving around the grid using the arrow keys. The directions of the movements are horizontal
+and vertical.
+
+
+
