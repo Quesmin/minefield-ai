@@ -52,7 +52,7 @@ base_grid = []
 sprite_grid = []
 display_msg = ''
 
-msg_dict = {(0, 0): "lol caca", (1, 1): "mue boc"}
+msg_dict = {(0, 0): "aglomeratie in baciu", (1, 1): "vin colindatori"}
 bomb_arr = [(1, 0), (2, 0)]
 
 
